@@ -101,7 +101,7 @@ exit:
 	return -1;
 }
 
-int radial_resize(struct radial_t *buffer, size_t ncopies)
+int radial_map(struct radial_t *buffer, size_t ncopies)
 {
 	/* Assert checks. */
 	assert(buffer && buffer->magic == RADIAL_MAGIC, "radial buffer not initialised");
@@ -112,6 +112,12 @@ int radial_resize(struct radial_t *buffer, size_t ncopies)
 		return 0;
 
 	uintptr_t offset = 0;
+
+	/*
+	 * FIXME: This currently causes a lot of issues because we start trying to
+	 *        map over other memory. mmap(2) can give us a very large page if
+	 *        we ask nicely, but we don't want to allocate that big of a page.
+	 */
 
 	/* TODO: This is ugly. */
 	if (buffer->copies < ncopies) {
@@ -138,13 +144,10 @@ void radial_free(struct radial_t *buffer)
 {
 	assert(buffer && buffer->magic == RADIAL_MAGIC, "radial buffer not initialised");
 
-	/* Remove all of the secondary mappings. */
-	radial_resize(buffer, 1);
-
-	/* Unmap the page and close the file. */
-	munmap(buffer->start, buffer->size);
-	close(buffer->fd);
-
 	/* Unset the magic bits. */
 	buffer->magic = 0xDEADBEEF;
+
+	/* Unmap the page and close the file. */
+	munmap(buffer->start, buffer->copies*buffer->size);
+	close(buffer->fd);
 }

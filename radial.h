@@ -88,7 +88,7 @@ int radial_init(struct radial_t *buffer, size_t size);
  * occured when increasing @ncopies, then the buffer may have been
  * mapped to at most (@ncopies - 1). Unmapping copies is atomic.
  */
-int radial_resize(struct radial_t *buffer, size_t ncopies);
+int radial_map(struct radial_t *buffer, size_t ncopies);
 
 /*
  * Frees all of the internal state of a radial_t buffer. The pointer
